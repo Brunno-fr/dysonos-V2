@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: dysonos-postgres
+    environment:
+      POSTGRES_DB: dysonos
+      POSTGRES_USER: dysonos
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no ambiente antes de iniciar o PostgreSQL}
+    ports:
+      - "5432:5432"
+    volumes:
+      - dysonos-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dysonos -d dysonos"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  dysonos-postgres-data:
