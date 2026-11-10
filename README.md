@@ -2,7 +2,7 @@
 
 **Autonomous Network Infrastructure**
 
-DYSONOS V2 é um simulador inteligente de infraestrutura de redes distribuídas. Esta etapa entrega a fundação inicial do backend para cadastro e consulta de Nodes.
+DYSONOS V2 é um simulador inteligente de infraestrutura de redes distribuídas. O backend permite cadastrar Zones e Nodes e associar Nodes a uma Zone.
 
 ## Tecnologias
 
@@ -23,7 +23,7 @@ O frontend ainda não foi implementado.
 
 ## Status
 
-Fundação inicial do backend implementada e validada. O projeto segue em desenvolvimento.
+Backend inicial de Nodes e Zones implementado e validado. O projeto segue em desenvolvimento.
 
 ## Requisitos
 
@@ -65,6 +65,10 @@ As configurações do banco são definidas pelas variáveis `DB_URL`, `DB_USERNA
 | GET | `/api/nodes/{id}` | Busca Node por UUID |
 | POST | `/api/nodes` | Cria Node |
 | DELETE | `/api/nodes/{id}` | Remove Node |
+| GET | `/api/zones` | Lista Zones com IDs dos Nodes vinculados |
+| GET | `/api/zones/{id}` | Busca Zone por UUID |
+| POST | `/api/zones` | Cria Zone |
+| DELETE | `/api/zones/{id}` | Remove Zone sem Nodes vinculados |
 
 Exemplo de criação:
 
@@ -72,11 +76,14 @@ Exemplo de criação:
 {
   "name": "edge-01",
   "cpuUsage": 35.5,
-  "memoryUsage": 62.0
+  "memoryUsage": 62.0,
+  "zoneId": null
 }
 ```
 
-CPU e memória aceitam valores de 0 a 100, inclusive. Novos Nodes começam com status `ONLINE`. Erros de validação e Nodes inexistentes são retornados como respostas HTTP com detalhes em formato Problem Details.
+`zoneId` é opcional. Quando informado, precisa identificar uma Zone existente. Cada Node pertence a zero ou uma Zone, e cada Zone pode conter vários Nodes. CPU e memória aceitam valores de 0 a 100, inclusive. Novos Nodes começam com status `ONLINE`. Uma Zone com Nodes vinculados não pode ser removida; a API retorna HTTP 409. Erros de validação e recursos inexistentes são retornados como respostas HTTP com detalhes em formato Problem Details.
+
+Para criar uma Zone, envie `{"name":"south-dc"}` a `POST /api/zones` e use o UUID retornado como `zoneId` ao criar um Node.
 
 ## Estrutura
 

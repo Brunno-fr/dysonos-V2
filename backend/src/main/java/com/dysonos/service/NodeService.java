@@ -3,8 +3,11 @@ package com.dysonos.service;
 import com.dysonos.dto.NodeRequest;
 import com.dysonos.dto.NodeResponse;
 import com.dysonos.exception.NodeNotFoundException;
+import com.dysonos.exception.ZoneNotFoundException;
 import com.dysonos.model.Node;
+import com.dysonos.model.Zone;
 import com.dysonos.repository.NodeRepository;
+import com.dysonos.repository.ZoneRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,9 +19,11 @@ import java.util.UUID;
 public class NodeService {
 
     private final NodeRepository nodeRepository;
+    private final ZoneRepository zoneRepository;
 
-    public NodeService(NodeRepository nodeRepository) {
+    public NodeService(NodeRepository nodeRepository, ZoneRepository zoneRepository) {
         this.nodeRepository = nodeRepository;
+        this.zoneRepository = zoneRepository;
     }
 
     public List<NodeResponse> findAll() {
@@ -31,7 +36,9 @@ public class NodeService {
 
     @Transactional
     public NodeResponse create(NodeRequest request) {
-        Node node = new Node(request.name().trim(), request.cpuUsage(), request.memoryUsage());
+        Zone zone = request.zoneId() == null ? null : zoneRepository.findById(request.zoneId())
+                .orElseThrow(() -> new ZoneNotFoundException(request.zoneId()));
+        Node node = new Node(request.name().trim(), request.cpuUsage(), request.memoryUsage(), zone);
         return NodeResponse.from(nodeRepository.save(node));
     }
 

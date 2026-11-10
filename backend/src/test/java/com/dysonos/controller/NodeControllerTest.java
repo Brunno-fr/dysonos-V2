@@ -35,7 +35,7 @@ class NodeControllerTest {
 
     private static final UUID NODE_ID = UUID.fromString("ce84c4fd-ce9d-4dcd-b94a-cedbf6a2fe3d");
     private static final NodeResponse NODE = new NodeResponse(NODE_ID, "edge-01", 25.0, 40.0,
-            NodeStatus.ONLINE, Instant.parse("2026-11-10T20:10:53Z"));
+            NodeStatus.ONLINE, null, Instant.parse("2026-11-10T20:10:53Z"));
 
     @Autowired
     private MockMvc mockMvc;
@@ -95,7 +95,7 @@ class NodeControllerTest {
                 .andExpect(jsonPath("$.id").value(NODE_ID.toString()))
                 .andExpect(jsonPath("$.status").value("ONLINE"));
 
-        verify(nodeService).create(new NodeRequest("edge-01", 25.0, 40.0));
+        verify(nodeService).create(new NodeRequest("edge-01", 25.0, 40.0, null));
     }
 
     @ParameterizedTest

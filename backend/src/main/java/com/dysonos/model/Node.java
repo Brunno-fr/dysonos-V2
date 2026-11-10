@@ -4,9 +4,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -37,15 +41,24 @@ public class Node {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "zone_id", foreignKey = @ForeignKey(name = "fk_nodes_zone"))
+    private Zone zone;
+
     protected Node() {
         // Required by JPA.
     }
 
     public Node(String name, double cpuUsage, double memoryUsage) {
+        this(name, cpuUsage, memoryUsage, null);
+    }
+
+    public Node(String name, double cpuUsage, double memoryUsage, Zone zone) {
         this.name = name;
         this.cpuUsage = cpuUsage;
         this.memoryUsage = memoryUsage;
         this.status = NodeStatus.ONLINE;
+        this.zone = zone;
     }
 
     @PrePersist
@@ -61,4 +74,5 @@ public class Node {
     public double getMemoryUsage() { return memoryUsage; }
     public NodeStatus getStatus() { return status; }
     public Instant getCreatedAt() { return createdAt; }
+    public Zone getZone() { return zone; }
 }
