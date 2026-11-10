@@ -1,14 +1,29 @@
 # DYSONOS V2
 
-DYSONOS V2 é um simulador de infraestrutura distribuída. Esta etapa entrega apenas a fundação inicial do backend para cadastro e consulta de Nodes.
+**Autonomous Network Infrastructure**
 
-## Tecnologias do backend
+DYSONOS V2 é um simulador inteligente de infraestrutura de redes distribuídas. Esta etapa entrega a fundação inicial do backend para cadastro e consulta de Nodes.
+
+## Tecnologias
+
+### Backend implementado
 
 - Java 21 e Spring Boot 3.5
 - Spring Web, Spring Data JPA e Spring Validation
 - PostgreSQL
 - Maven
 - JUnit 5 e Mockito
+
+### Frontend planejado
+
+- React e TypeScript
+- Vite, Tailwind CSS e Three.js
+
+O frontend ainda não foi implementado.
+
+## Status
+
+Fundação inicial do backend implementada e validada. O projeto segue em desenvolvimento.
 
 ## Requisitos
 
@@ -18,7 +33,7 @@ DYSONOS V2 é um simulador de infraestrutura distribuída. Esta etapa entrega ap
 
 ## Executar
 
-Na raiz do projeto, defina a senha local fora dos arquivos versionados e inicie o PostgreSQL. No PowerShell:
+Na raiz do projeto, defina uma senha local fora dos arquivos versionados e inicie o PostgreSQL. No PowerShell:
 
 ```powershell
 $env:DB_PASSWORD = "sua-senha-local"
@@ -27,19 +42,19 @@ docker compose up -d postgres
 
 Em outro terminal, execute a aplicação:
 
-```bash
+```powershell
 cd backend
 mvn spring-boot:run
 ```
 
 A API fica disponível em `http://localhost:8080`. Para executar os testes:
 
-```bash
+```powershell
 cd backend
 mvn test
 ```
 
-As configurações do banco são definidas pelas variáveis `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`. `DB_PASSWORD` deve ser fornecida pelo ambiente e não é armazenada no repositório.
+As configurações do banco são definidas pelas variáveis `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`. A senha é fornecida pelo ambiente e não é armazenada no repositório.
 
 ## Endpoints
 
