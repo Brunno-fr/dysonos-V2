@@ -74,6 +74,7 @@ As configurações do banco são definidas pelas variáveis `DB_URL`, `DB_USERNA
 | GET | `/api/zones` | Lista Zones com IDs dos Nodes vinculados |
 | GET | `/api/zones/{id}` | Busca Zone por UUID |
 | GET | `/api/zones/{id}/metrics` | Resume Nodes, sobrecargas e médias de CPU e memória |
+| POST | `/api/zones/{id}/distribution-plan` | Simula a distribuição de uma demanda entre Nodes ONLINE |
 | POST | `/api/zones` | Cria Zone |
 | DELETE | `/api/zones/{id}` | Remove Zone sem Nodes vinculados |
 
@@ -91,6 +92,17 @@ Exemplo de criação:
 `zoneId` é opcional. Quando informado, precisa identificar uma Zone existente. Cada Node pertence a zero ou uma Zone, e cada Zone pode conter vários Nodes. CPU e memória aceitam valores de 0 a 100, inclusive. Novos Nodes começam com status `ONLINE`. Uma Zone com Nodes vinculados não pode ser removida; a API retorna HTTP 409. Erros de validação e recursos inexistentes são retornados como respostas HTTP com detalhes em formato Problem Details.
 
 O endpoint `PUT /api/nodes/{id}/usage` recebe uma nova leitura de CPU e memória (ambas de 0 a 100), substitui os valores atuais e retorna o Node atualizado. Se CPU ou memória atingir seu limite, o status passa a `OVERLOADED`; se ambas ficarem abaixo dos limites, volta a `ONLINE`. Os limites padrão são 80% e podem ser alterados com `NODE_CPU_OVERLOAD_THRESHOLD` e `NODE_MEMORY_OVERLOAD_THRESHOLD`. Esta etapa registra leituras enviadas pelo cliente; não coleta métricas do sistema operacional. O Flyway aplica a migração versionada que atualiza a restrição de status no PostgreSQL sem remover Nodes existentes.
+
+`POST /api/zones/{id}/distribution-plan` recebe `cpuDemand` e `memoryDemand` como pontos percentuais da capacidade de um Node e calcula uma divisão proporcional entre os Nodes `ONLINE` da Zone. A resposta informa se a demanda cabe na capacidade disponível e, quando couber, lista a parcela e a utilização projetada por Node. O cálculo usa os limites configurados e reserva 0,01 ponto percentual abaixo deles. É um plano de simulação: não altera Nodes, leituras nem estado no banco. Se não houver capacidade suficiente, retorna `feasible: false` e uma lista `allocations` vazia.
+
+Exemplo de planejamento:
+
+```json
+{
+  "cpuDemand": 30,
+  "memoryDemand": 20
+}
+```
 
 Uma Network pode conter várias Zones, e cada Zone pode pertencer a zero ou uma Network. `networkId` é opcional ao criar uma Zone; quando informado, precisa identificar uma Network existente. Networks com Zones vinculadas não podem ser removidas (HTTP 409).
 

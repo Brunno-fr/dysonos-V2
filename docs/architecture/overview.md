@@ -23,4 +23,6 @@ O endpoint `GET /api/networks/{id}/metrics` agrega a quantidade de Zones e Nodes
 
 O endpoint `GET /api/zones/{id}/metrics` resume a quantidade de Nodes da Zone, Nodes sobrecarregados e as médias aritméticas atuais de CPU e memória, além do ID da Network associada quando houver.
 
+O endpoint `POST /api/zones/{id}/distribution-plan` cria apenas um plano em memória para distribuir uma demanda proporcional de CPU e memória pelos Nodes `ONLINE` daquela Zone. O cálculo usa os limites configurados e preserva uma margem de 0,01 ponto percentual. Nodes sobrecarregados são excluídos. O plano não persiste nem aplica a alocação e não altera as leituras atuais. Quando a capacidade é insuficiente, a resposta informa `feasible: false` sem retornar alocações parciais.
+
 O endpoint `/api/health` informa apenas que a aplicação respondeu. Ele não verifica a conectividade do banco de dados.

@@ -3,10 +3,13 @@ package com.dysonos.controller;
 import com.dysonos.dto.ZoneRequest;
 import com.dysonos.dto.ZoneMetricsResponse;
 import com.dysonos.dto.ZoneResponse;
+import com.dysonos.dto.DistributionPlanRequest;
+import com.dysonos.dto.DistributionPlanResponse;
 import com.dysonos.exception.GlobalExceptionHandler;
 import com.dysonos.exception.ZoneInUseException;
 import com.dysonos.exception.ZoneNotFoundException;
 import com.dysonos.service.ZoneService;
+import com.dysonos.service.ZoneDistributionService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -43,6 +46,9 @@ class ZoneControllerTest {
     @MockitoBean
     private ZoneService zoneService;
 
+    @MockitoBean
+    private ZoneDistributionService zoneDistributionService;
+
     @Test
     void findAllReturnsZones() throws Exception {
         when(zoneService.findAll()).thenReturn(List.of(ZONE));
@@ -77,6 +83,39 @@ class ZoneControllerTest {
                 .andExpect(jsonPath("$.overloadedNodeCount").value(1))
                 .andExpect(jsonPath("$.averageCpuUsage").value(82.0))
                 .andExpect(jsonPath("$.averageMemoryUsage").value(64.0));
+    }
+
+    @Test
+    void createDistributionPlanReturnsCapacityPlan() throws Exception {
+        DistributionPlanResponse plan = new DistributionPlanResponse(ZONE_ID, true, 30, 20,
+                39.98, 59.98, List.of(new DistributionPlanResponse.NodeAllocation(
+                NODE_ID, "edge-01", 30, 20, 60, 70)));
+        when(zoneDistributionService.plan(ZONE_ID, new DistributionPlanRequest(30.0, 20.0)))
+                .thenReturn(plan);
+
+        mockMvc.perform(post("/api/zones/{id}/distribution-plan", ZONE_ID)
+                        .contentType("application/json")
+                        .content("""
+                                {"cpuDemand":30,"memoryDemand":20}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.feasible").value(true))
+                .andExpect(jsonPath("$.allocations[0].nodeId").value(NODE_ID.toString()))
+                .andExpect(jsonPath("$.allocations[0].allocatedCpu").value(30.0))
+                .andExpect(jsonPath("$.allocations[0].allocatedMemory").value(20.0));
+    }
+
+    @Test
+    void createDistributionPlanRejectsNegativeDemand() throws Exception {
+        mockMvc.perform(post("/api/zones/{id}/distribution-plan", ZONE_ID)
+                        .contentType("application/json")
+                        .content("""
+                                {"cpuDemand":-1,"memoryDemand":20}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.cpuDemand").exists());
+
+        verifyNoInteractions(zoneDistributionService);
     }
 
     @Test

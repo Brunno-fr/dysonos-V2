@@ -3,7 +3,10 @@ package com.dysonos.controller;
 import com.dysonos.dto.ZoneRequest;
 import com.dysonos.dto.ZoneMetricsResponse;
 import com.dysonos.dto.ZoneResponse;
+import com.dysonos.dto.DistributionPlanRequest;
+import com.dysonos.dto.DistributionPlanResponse;
 import com.dysonos.service.ZoneService;
+import com.dysonos.service.ZoneDistributionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,9 +26,11 @@ import java.util.UUID;
 public class ZoneController {
 
     private final ZoneService zoneService;
+    private final ZoneDistributionService zoneDistributionService;
 
-    public ZoneController(ZoneService zoneService) {
+    public ZoneController(ZoneService zoneService, ZoneDistributionService zoneDistributionService) {
         this.zoneService = zoneService;
+        this.zoneDistributionService = zoneDistributionService;
     }
 
     @GetMapping
@@ -41,6 +46,12 @@ public class ZoneController {
     @GetMapping("/{id}/metrics")
     public ZoneMetricsResponse findMetrics(@PathVariable UUID id) {
         return zoneService.findMetrics(id);
+    }
+
+    @PostMapping("/{id}/distribution-plan")
+    public DistributionPlanResponse createDistributionPlan(@PathVariable UUID id,
+                                                           @Valid @RequestBody DistributionPlanRequest request) {
+        return zoneDistributionService.plan(id, request);
     }
 
     @PostMapping
