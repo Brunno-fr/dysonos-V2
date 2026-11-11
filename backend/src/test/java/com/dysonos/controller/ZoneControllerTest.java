@@ -1,6 +1,7 @@
 package com.dysonos.controller;
 
 import com.dysonos.dto.ZoneRequest;
+import com.dysonos.dto.ZoneMetricsResponse;
 import com.dysonos.dto.ZoneResponse;
 import com.dysonos.exception.GlobalExceptionHandler;
 import com.dysonos.exception.ZoneInUseException;
@@ -61,6 +62,21 @@ class ZoneControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(ZONE_ID.toString()))
                 .andExpect(jsonPath("$.nodeIds[0]").value(NODE_ID.toString()));
+    }
+
+    @Test
+    void findMetricsReturnsZoneUsageSummary() throws Exception {
+        ZoneMetricsResponse metrics = new ZoneMetricsResponse(ZONE_ID, "south-dc", null,
+                2, 1, 82.0, 64.0);
+        when(zoneService.findMetrics(ZONE_ID)).thenReturn(metrics);
+
+        mockMvc.perform(get("/api/zones/{id}/metrics", ZONE_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.zoneId").value(ZONE_ID.toString()))
+                .andExpect(jsonPath("$.nodeCount").value(2))
+                .andExpect(jsonPath("$.overloadedNodeCount").value(1))
+                .andExpect(jsonPath("$.averageCpuUsage").value(82.0))
+                .andExpect(jsonPath("$.averageMemoryUsage").value(64.0));
     }
 
     @Test

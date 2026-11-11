@@ -73,6 +73,7 @@ As configurações do banco são definidas pelas variáveis `DB_URL`, `DB_USERNA
 | DELETE | `/api/networks/{id}` | Remove Network sem Zones vinculadas |
 | GET | `/api/zones` | Lista Zones com IDs dos Nodes vinculados |
 | GET | `/api/zones/{id}` | Busca Zone por UUID |
+| GET | `/api/zones/{id}/metrics` | Resume Nodes, sobrecargas e médias de CPU e memória |
 | POST | `/api/zones` | Cria Zone |
 | DELETE | `/api/zones/{id}` | Remove Zone sem Nodes vinculados |
 

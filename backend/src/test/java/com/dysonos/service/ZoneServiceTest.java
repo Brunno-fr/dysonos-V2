@@ -1,6 +1,7 @@
 package com.dysonos.service;
 
 import com.dysonos.dto.ZoneRequest;
+import com.dysonos.dto.ZoneMetricsResponse;
 import com.dysonos.dto.ZoneResponse;
 import com.dysonos.exception.NetworkNotFoundException;
 import com.dysonos.exception.ZoneInUseException;
@@ -10,6 +11,7 @@ import com.dysonos.model.Network;
 import com.dysonos.repository.NetworkRepository;
 import com.dysonos.repository.NodeRepository;
 import com.dysonos.repository.ZoneRepository;
+import com.dysonos.repository.ZoneMetricsProjection;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -80,6 +83,51 @@ class ZoneServiceTest {
         when(zoneRepository.findById(id)).thenReturn(Optional.empty());
 
         assertThrows(ZoneNotFoundException.class, () -> zoneService.findById(id));
+    }
+
+    @Test
+    void findMetricsReturnsAggregatedZoneUsage() {
+        UUID id = UUID.randomUUID();
+        UUID networkId = UUID.randomUUID();
+        ZoneMetricsProjection projection = mock(ZoneMetricsProjection.class);
+        when(zoneRepository.findById(id)).thenReturn(Optional.of(new Zone("south-dc")));
+        when(zoneRepository.findMetricsById(id, com.dysonos.model.NodeStatus.OVERLOADED))
+                .thenReturn(Optional.of(projection));
+        when(projection.getZoneId()).thenReturn(id);
+        when(projection.getName()).thenReturn("south-dc");
+        when(projection.getNetworkId()).thenReturn(networkId);
+        when(projection.getNodeCount()).thenReturn(2L);
+        when(projection.getOverloadedNodeCount()).thenReturn(1L);
+        when(projection.getAverageCpuUsage()).thenReturn(82.0);
+        when(projection.getAverageMemoryUsage()).thenReturn(64.0);
+
+        ZoneMetricsResponse response = zoneService.findMetrics(id);
+
+        assertEquals(id, response.zoneId());
+        assertEquals(networkId, response.networkId());
+        assertEquals(2L, response.nodeCount());
+        assertEquals(1L, response.overloadedNodeCount());
+        assertEquals(82.0, response.averageCpuUsage());
+        assertEquals(64.0, response.averageMemoryUsage());
+    }
+
+    @Test
+    void findMetricsReturnsZeroAveragesForZoneWithoutNodes() {
+        UUID id = UUID.randomUUID();
+        ZoneMetricsProjection projection = mock(ZoneMetricsProjection.class);
+        when(zoneRepository.findById(id)).thenReturn(Optional.of(new Zone("empty")));
+        when(zoneRepository.findMetricsById(id, com.dysonos.model.NodeStatus.OVERLOADED))
+                .thenReturn(Optional.of(projection));
+        when(projection.getZoneId()).thenReturn(id);
+        when(projection.getName()).thenReturn("empty");
+
+        ZoneMetricsResponse response = zoneService.findMetrics(id);
+
+        assertEquals(null, response.networkId());
+        assertEquals(0L, response.nodeCount());
+        assertEquals(0L, response.overloadedNodeCount());
+        assertEquals(0.0, response.averageCpuUsage());
+        assertEquals(0.0, response.averageMemoryUsage());
     }
 
     @Test

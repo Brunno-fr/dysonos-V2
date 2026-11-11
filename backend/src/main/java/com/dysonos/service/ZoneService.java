@@ -1,11 +1,13 @@
 package com.dysonos.service;
 
 import com.dysonos.dto.ZoneRequest;
+import com.dysonos.dto.ZoneMetricsResponse;
 import com.dysonos.dto.ZoneResponse;
 import com.dysonos.exception.NetworkNotFoundException;
 import com.dysonos.exception.ZoneInUseException;
 import com.dysonos.exception.ZoneNotFoundException;
 import com.dysonos.model.Network;
+import com.dysonos.model.NodeStatus;
 import com.dysonos.model.Zone;
 import com.dysonos.repository.NetworkRepository;
 import com.dysonos.repository.NodeRepository;
@@ -37,6 +39,13 @@ public class ZoneService {
 
     public ZoneResponse findById(UUID id) {
         return ZoneResponse.from(getZone(id));
+    }
+
+    public ZoneMetricsResponse findMetrics(UUID id) {
+        getZone(id);
+        return zoneRepository.findMetricsById(id, NodeStatus.OVERLOADED)
+                .map(ZoneMetricsResponse::from)
+                .orElseThrow(() -> new ZoneNotFoundException(id));
     }
 
     @Transactional

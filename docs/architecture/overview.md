@@ -21,4 +21,6 @@ Uma migração Flyway atualiza a restrição de status no PostgreSQL para permit
 
 O endpoint `GET /api/networks/{id}/metrics` agrega a quantidade de Zones e Nodes, Nodes sobrecarregados e as médias aritméticas das porcentagens de CPU e memória dos Nodes vinculados. Em Networks sem Nodes, as médias são retornadas como zero. Os valores representam as leituras simuladas atualmente armazenadas.
 
+O endpoint `GET /api/zones/{id}/metrics` resume a quantidade de Nodes da Zone, Nodes sobrecarregados e as médias aritméticas atuais de CPU e memória, além do ID da Network associada quando houver.
+
 O endpoint `/api/health` informa apenas que a aplicação respondeu. Ele não verifica a conectividade do banco de dados.

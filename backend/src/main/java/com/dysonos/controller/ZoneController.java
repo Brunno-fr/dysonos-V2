@@ -1,6 +1,7 @@
 package com.dysonos.controller;
 
 import com.dysonos.dto.ZoneRequest;
+import com.dysonos.dto.ZoneMetricsResponse;
 import com.dysonos.dto.ZoneResponse;
 import com.dysonos.service.ZoneService;
 import jakarta.validation.Valid;
@@ -35,6 +36,11 @@ public class ZoneController {
     @GetMapping("/{id}")
     public ZoneResponse findById(@PathVariable UUID id) {
         return zoneService.findById(id);
+    }
+
+    @GetMapping("/{id}/metrics")
+    public ZoneMetricsResponse findMetrics(@PathVariable UUID id) {
+        return zoneService.findMetrics(id);
     }
 
     @PostMapping
