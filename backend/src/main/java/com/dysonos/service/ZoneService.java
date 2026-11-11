@@ -2,9 +2,12 @@ package com.dysonos.service;
 
 import com.dysonos.dto.ZoneRequest;
 import com.dysonos.dto.ZoneResponse;
+import com.dysonos.exception.NetworkNotFoundException;
 import com.dysonos.exception.ZoneInUseException;
 import com.dysonos.exception.ZoneNotFoundException;
+import com.dysonos.model.Network;
 import com.dysonos.model.Zone;
+import com.dysonos.repository.NetworkRepository;
 import com.dysonos.repository.NodeRepository;
 import com.dysonos.repository.ZoneRepository;
 import org.springframework.stereotype.Service;
@@ -19,10 +22,13 @@ public class ZoneService {
 
     private final ZoneRepository zoneRepository;
     private final NodeRepository nodeRepository;
+    private final NetworkRepository networkRepository;
 
-    public ZoneService(ZoneRepository zoneRepository, NodeRepository nodeRepository) {
+    public ZoneService(ZoneRepository zoneRepository, NodeRepository nodeRepository,
+                       NetworkRepository networkRepository) {
         this.zoneRepository = zoneRepository;
         this.nodeRepository = nodeRepository;
+        this.networkRepository = networkRepository;
     }
 
     public List<ZoneResponse> findAll() {
@@ -35,7 +41,9 @@ public class ZoneService {
 
     @Transactional
     public ZoneResponse create(ZoneRequest request) {
-        Zone zone = new Zone(request.name().trim());
+        Network network = request.networkId() == null ? null : networkRepository.findById(request.networkId())
+                .orElseThrow(() -> new NetworkNotFoundException(request.networkId()));
+        Zone zone = new Zone(request.name().trim(), network);
         return ZoneResponse.from(zoneRepository.save(zone));
     }
 

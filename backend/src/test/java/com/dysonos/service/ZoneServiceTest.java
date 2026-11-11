@@ -2,9 +2,12 @@ package com.dysonos.service;
 
 import com.dysonos.dto.ZoneRequest;
 import com.dysonos.dto.ZoneResponse;
+import com.dysonos.exception.NetworkNotFoundException;
 import com.dysonos.exception.ZoneInUseException;
 import com.dysonos.exception.ZoneNotFoundException;
 import com.dysonos.model.Zone;
+import com.dysonos.model.Network;
+import com.dysonos.repository.NetworkRepository;
 import com.dysonos.repository.NodeRepository;
 import com.dysonos.repository.ZoneRepository;
 import org.junit.jupiter.api.Test;
@@ -32,6 +35,9 @@ class ZoneServiceTest {
     @Mock
     private NodeRepository nodeRepository;
 
+    @Mock
+    private NetworkRepository networkRepository;
+
     @InjectMocks
     private ZoneService zoneService;
 
@@ -39,10 +45,33 @@ class ZoneServiceTest {
     void createTrimsName() {
         when(zoneRepository.save(any(Zone.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ZoneResponse response = zoneService.create(new ZoneRequest(" south-dc "));
+        ZoneResponse response = zoneService.create(new ZoneRequest(" south-dc ", null));
 
         assertEquals("south-dc", response.name());
         assertEquals(0, response.nodeIds().size());
+    }
+
+    @Test
+    void createAssociatesZoneWithRequestedNetwork() {
+        UUID networkId = UUID.randomUUID();
+        Network network = new Network("production");
+        when(networkRepository.findById(networkId)).thenReturn(Optional.of(network));
+        when(zoneRepository.save(any(Zone.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        zoneService.create(new ZoneRequest("south-dc", networkId));
+
+        var savedZone = org.mockito.ArgumentCaptor.forClass(Zone.class);
+        verify(zoneRepository).save(savedZone.capture());
+        assertEquals(network, savedZone.getValue().getNetwork());
+    }
+
+    @Test
+    void createThrowsWhenRequestedNetworkDoesNotExist() {
+        UUID networkId = UUID.randomUUID();
+        when(networkRepository.findById(networkId)).thenReturn(Optional.empty());
+
+        assertThrows(NetworkNotFoundException.class,
+                () -> zoneService.create(new ZoneRequest("south-dc", networkId)));
     }
 
     @Test

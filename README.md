@@ -2,7 +2,7 @@
 
 **Autonomous Network Infrastructure**
 
-DYSONOS V2 é um simulador inteligente de infraestrutura de redes distribuídas. O backend permite cadastrar Zones e Nodes e associar Nodes a uma Zone.
+DYSONOS V2 é um simulador inteligente de infraestrutura de redes distribuídas. O backend permite cadastrar Networks, Zones e Nodes e associá-los em uma hierarquia.
 
 ## Tecnologias
 
@@ -23,7 +23,7 @@ O frontend ainda não foi implementado.
 
 ## Status
 
-Backend inicial de Nodes e Zones implementado e validado. O projeto segue em desenvolvimento.
+Backend inicial de Networks, Zones e Nodes implementado e validado. O projeto segue em desenvolvimento.
 
 ## Requisitos
 
@@ -65,6 +65,10 @@ As configurações do banco são definidas pelas variáveis `DB_URL`, `DB_USERNA
 | GET | `/api/nodes/{id}` | Busca Node por UUID |
 | POST | `/api/nodes` | Cria Node |
 | DELETE | `/api/nodes/{id}` | Remove Node |
+| GET | `/api/networks` | Lista Networks com IDs das Zones vinculadas |
+| GET | `/api/networks/{id}` | Busca Network por UUID |
+| POST | `/api/networks` | Cria Network |
+| DELETE | `/api/networks/{id}` | Remove Network sem Zones vinculadas |
 | GET | `/api/zones` | Lista Zones com IDs dos Nodes vinculados |
 | GET | `/api/zones/{id}` | Busca Zone por UUID |
 | POST | `/api/zones` | Cria Zone |
@@ -83,7 +87,9 @@ Exemplo de criação:
 
 `zoneId` é opcional. Quando informado, precisa identificar uma Zone existente. Cada Node pertence a zero ou uma Zone, e cada Zone pode conter vários Nodes. CPU e memória aceitam valores de 0 a 100, inclusive. Novos Nodes começam com status `ONLINE`. Uma Zone com Nodes vinculados não pode ser removida; a API retorna HTTP 409. Erros de validação e recursos inexistentes são retornados como respostas HTTP com detalhes em formato Problem Details.
 
-Para criar uma Zone, envie `{"name":"south-dc"}` a `POST /api/zones` e use o UUID retornado como `zoneId` ao criar um Node.
+Uma Network pode conter várias Zones, e cada Zone pode pertencer a zero ou uma Network. `networkId` é opcional ao criar uma Zone; quando informado, precisa identificar uma Network existente. Networks com Zones vinculadas não podem ser removidas (HTTP 409).
+
+Para criar a hierarquia, envie `{"name":"production"}` a `POST /api/networks`, use o UUID retornado como `networkId` em `POST /api/zones`, e use o UUID da Zone como `zoneId` em `POST /api/nodes`.
 
 ## Estrutura
 

@@ -33,7 +33,7 @@ class ZoneControllerTest {
 
     private static final UUID ZONE_ID = UUID.fromString("743b1fd6-b0a6-4b6a-8680-67c57fdf2cd7");
     private static final UUID NODE_ID = UUID.fromString("ce84c4fd-ce9d-4dcd-b94a-cedbf6a2fe3d");
-    private static final ZoneResponse ZONE = new ZoneResponse(ZONE_ID, "south-dc",
+    private static final ZoneResponse ZONE = new ZoneResponse(ZONE_ID, "south-dc", null,
             Instant.parse("2026-11-10T20:10:53Z"), List.of(NODE_ID));
 
     @Autowired
@@ -85,7 +85,7 @@ class ZoneControllerTest {
                 .andExpect(jsonPath("$.id").value(ZONE_ID.toString()))
                 .andExpect(jsonPath("$.name").value("south-dc"));
 
-        verify(zoneService).create(new ZoneRequest("south-dc"));
+        verify(zoneService).create(new ZoneRequest("south-dc", null));
     }
 
     @Test
