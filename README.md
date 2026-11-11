@@ -15,22 +15,25 @@ DYSONOS V2 é um simulador inteligente de infraestrutura de redes distribuídas.
 - JUnit 5 e Mockito
 - Testcontainers para testes de integração com PostgreSQL
 
-### Frontend planejado
+### Frontend implementado
 
-- React e TypeScript
-- Vite, Tailwind CSS e Three.js
+- React 19 e TypeScript
+- Vite e Tailwind CSS
+- Three.js com React Three Fiber para topologia 3D
+- Recharts para séries de métricas coletadas durante a sessão
 
-O frontend ainda não foi implementado.
+O painel consome apenas rotas que já existem no backend. Histórico de eventos fica na sessão do navegador; segurança e expansão automática estão identificadas como pendentes de integração.
 
 ## Status
 
-Backend inicial de Networks, Zones e Nodes implementado e validado. O projeto segue em desenvolvimento.
+Backend de Networks, Zones, Nodes, métricas e Workloads implementado e validado. O frontend inicial está em desenvolvimento.
 
 ## Requisitos
 
 - JDK 21
 - Maven 3.6.3 ou superior
 - Docker Desktop com Docker Compose (também usado pelos testes de integração) ou PostgreSQL instalado localmente
+- Node.js 20 ou superior e npm
 
 ## Executar
 
@@ -58,6 +61,25 @@ mvn test
 Os testes de integração criam um PostgreSQL temporário pelo Testcontainers. Deixe o Docker Desktop iniciado para executá-los; sem acesso ao Docker, eles são ignorados e os demais testes continuam rodando.
 
 As configurações do banco são definidas pelas variáveis `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`. A senha é fornecida pelo ambiente e não é armazenada no repositório.
+
+## Executar o frontend
+
+Com o backend e o PostgreSQL rodando em outro terminal:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Abra `http://localhost:5173`. O Vite encaminha as chamadas `/api` para `http://localhost:8080`. Se o backend estiver na porta 8081, defina o destino antes de iniciar o Vite:
+
+```powershell
+$env:VITE_API_TARGET = "http://localhost:8081"
+npm run dev
+```
+
+Para validar e gerar a versão de produção, rode `npm run build` dentro de `frontend`.
 
 ## Endpoints
 
