@@ -25,4 +25,6 @@ O endpoint `GET /api/zones/{id}/metrics` resume a quantidade de Nodes da Zone, N
 
 O endpoint `POST /api/zones/{id}/distribution-plan` cria apenas um plano em memória para distribuir uma demanda proporcional de CPU e memória pelos Nodes `ONLINE` daquela Zone. O cálculo usa os limites configurados e preserva uma margem de 0,01 ponto percentual. Nodes sobrecarregados são excluídos. O plano não persiste nem aplica a alocação e não altera as leituras atuais. Quando a capacidade é insuficiente, a resposta informa `feasible: false` sem retornar alocações parciais.
 
+Demandas persistidas usam `Workload` e `WorkloadAllocation`. O endpoint `POST /api/zones/{zoneId}/workloads` calcula a distribuição e grava demanda e alocações na mesma transação. Uma consulta agregada considera as alocações `ACTIVE` nos planos seguintes. O endpoint `DELETE /api/workloads/{id}` muda o estado para `STOPPED`, mantendo o histórico e deixando de reservar capacidade. As leituras de uso do Node não são sobrescritas. O Flyway V2 cria as tabelas, chaves estrangeiras, restrições e índices dessas entidades.
+
 O endpoint `/api/health` informa apenas que a aplicação respondeu. Ele não verifica a conectividade do banco de dados.

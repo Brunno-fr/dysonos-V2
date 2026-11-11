@@ -7,6 +7,8 @@ import com.dysonos.exception.ZoneNotFoundException;
 import com.dysonos.model.Node;
 import com.dysonos.model.NodeStatus;
 import com.dysonos.repository.NodeRepository;
+import com.dysonos.repository.ActiveNodeAllocationProjection;
+import com.dysonos.repository.WorkloadAllocationRepository;
 import com.dysonos.repository.ZoneRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,11 +36,15 @@ class ZoneDistributionServiceTest {
     @Mock
     private NodeRepository nodeRepository;
 
+    @Mock
+    private WorkloadAllocationRepository workloadAllocationRepository;
+
     private ZoneDistributionService service;
 
     @BeforeEach
     void setUp() {
-        service = new ZoneDistributionService(zoneRepository, nodeRepository, new NodeUsageThresholdProperties());
+        service = new ZoneDistributionService(zoneRepository, nodeRepository, workloadAllocationRepository,
+                new NodeUsageThresholdProperties());
     }
 
     @Test
@@ -120,9 +126,38 @@ class ZoneDistributionServiceTest {
                 () -> service.plan(zoneId, new DistributionPlanRequest(1.0, 1.0)));
     }
 
+    @Test
+    void planSubtractsActiveWorkloadReservationsFromAvailableCapacity() {
+        UUID zoneId = UUID.randomUUID();
+        UUID nodeId = UUID.randomUUID();
+        Node node = node(nodeId, "edge-01", 30, 40);
+        ActiveNodeAllocationProjection reservation = org.mockito.Mockito.mock(ActiveNodeAllocationProjection.class);
+        when(zoneRepository.existsById(zoneId)).thenReturn(true);
+        when(nodeRepository.findAllByZoneIdAndStatusOrderById(zoneId, NodeStatus.ONLINE))
+                .thenReturn(List.of(node));
+        when(workloadAllocationRepository.sumAllocationsByNodeIdsAndWorkloadStatus(
+                List.of(nodeId), com.dysonos.model.WorkloadStatus.ACTIVE))
+                .thenReturn(List.of(reservation));
+        when(reservation.getNodeId()).thenReturn(nodeId);
+        when(reservation.getCpuAllocated()).thenReturn(20.0);
+        when(reservation.getMemoryAllocated()).thenReturn(25.0);
+
+        DistributionPlanResponse response = service.plan(zoneId, new DistributionPlanRequest(20.0, 10.0));
+
+        assertTrue(response.feasible());
+        assertEquals(29.99, response.availableCpu(), 0.000001);
+        assertEquals(14.99, response.availableMemory(), 0.000001);
+        assertEquals(70.0, response.allocations().getFirst().projectedCpuUsage(), 0.000001);
+        assertEquals(75.0, response.allocations().getFirst().projectedMemoryUsage(), 0.000001);
+    }
+
     private Node node(String name, double cpu, double memory) {
+        return node(UUID.randomUUID(), name, cpu, memory);
+    }
+
+    private Node node(UUID id, String name, double cpu, double memory) {
         Node node = org.mockito.Mockito.mock(Node.class);
-        when(node.getId()).thenReturn(UUID.randomUUID());
+        when(node.getId()).thenReturn(id);
         when(node.getName()).thenReturn(name);
         when(node.getCpuUsage()).thenReturn(cpu);
         when(node.getMemoryUsage()).thenReturn(memory);

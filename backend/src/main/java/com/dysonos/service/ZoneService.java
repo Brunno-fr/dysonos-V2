@@ -12,6 +12,7 @@ import com.dysonos.model.Zone;
 import com.dysonos.repository.NetworkRepository;
 import com.dysonos.repository.NodeRepository;
 import com.dysonos.repository.ZoneRepository;
+import com.dysonos.repository.WorkloadRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,12 +26,14 @@ public class ZoneService {
     private final ZoneRepository zoneRepository;
     private final NodeRepository nodeRepository;
     private final NetworkRepository networkRepository;
+    private final WorkloadRepository workloadRepository;
 
     public ZoneService(ZoneRepository zoneRepository, NodeRepository nodeRepository,
-                       NetworkRepository networkRepository) {
+                       NetworkRepository networkRepository, WorkloadRepository workloadRepository) {
         this.zoneRepository = zoneRepository;
         this.nodeRepository = nodeRepository;
         this.networkRepository = networkRepository;
+        this.workloadRepository = workloadRepository;
     }
 
     public List<ZoneResponse> findAll() {
@@ -60,6 +63,9 @@ public class ZoneService {
     public void delete(UUID id) {
         Zone zone = getZone(id);
         if (nodeRepository.existsByZoneId(id)) {
+            throw new ZoneInUseException(id);
+        }
+        if (workloadRepository.existsByZoneId(id)) {
             throw new ZoneInUseException(id);
         }
         zoneRepository.delete(zone);

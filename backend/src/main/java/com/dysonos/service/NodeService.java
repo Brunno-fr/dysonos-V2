@@ -5,11 +5,13 @@ import com.dysonos.dto.NodeResponse;
 import com.dysonos.dto.NodeUsageRequest;
 import com.dysonos.configuration.NodeUsageThresholdProperties;
 import com.dysonos.exception.NodeNotFoundException;
+import com.dysonos.exception.NodeInUseException;
 import com.dysonos.exception.ZoneNotFoundException;
 import com.dysonos.model.Node;
 import com.dysonos.model.NodeStatus;
 import com.dysonos.model.Zone;
 import com.dysonos.repository.NodeRepository;
+import com.dysonos.repository.WorkloadAllocationRepository;
 import com.dysonos.repository.ZoneRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,12 +25,15 @@ public class NodeService {
 
     private final NodeRepository nodeRepository;
     private final ZoneRepository zoneRepository;
+    private final WorkloadAllocationRepository workloadAllocationRepository;
     private final NodeUsageThresholdProperties usageThresholds;
 
     public NodeService(NodeRepository nodeRepository, ZoneRepository zoneRepository,
+                       WorkloadAllocationRepository workloadAllocationRepository,
                        NodeUsageThresholdProperties usageThresholds) {
         this.nodeRepository = nodeRepository;
         this.zoneRepository = zoneRepository;
+        this.workloadAllocationRepository = workloadAllocationRepository;
         this.usageThresholds = usageThresholds;
     }
 
@@ -60,7 +65,11 @@ public class NodeService {
 
     @Transactional
     public void delete(UUID id) {
-        nodeRepository.delete(getNode(id));
+        Node node = getNode(id);
+        if (workloadAllocationRepository.existsByNodeId(id)) {
+            throw new NodeInUseException(id);
+        }
+        nodeRepository.delete(node);
     }
 
     private Node getNode(UUID id) {

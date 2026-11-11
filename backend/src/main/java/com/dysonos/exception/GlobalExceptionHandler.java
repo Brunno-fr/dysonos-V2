@@ -21,6 +21,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
     }
 
+    @ExceptionHandler(NodeInUseException.class)
+    public ResponseEntity<ProblemDetail> handleNodeInUse(NodeInUseException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
+        problem.setTitle("Node em uso");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    }
+
     @ExceptionHandler(ZoneNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleZoneNotFound(ZoneNotFoundException exception) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
@@ -32,6 +39,20 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleZoneInUse(ZoneInUseException exception) {
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
         problem.setTitle("Zone em uso");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
+    }
+
+    @ExceptionHandler(WorkloadNotFoundException.class)
+    public ResponseEntity<ProblemDetail> handleWorkloadNotFound(WorkloadNotFoundException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+        problem.setTitle("Workload não encontrada");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem);
+    }
+
+    @ExceptionHandler(InsufficientZoneCapacityException.class)
+    public ResponseEntity<ProblemDetail> handleInsufficientZoneCapacity(InsufficientZoneCapacityException exception) {
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
+        problem.setTitle("Capacidade insuficiente");
         return ResponseEntity.status(HttpStatus.CONFLICT).body(problem);
     }
 

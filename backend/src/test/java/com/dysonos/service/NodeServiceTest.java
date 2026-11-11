@@ -5,11 +5,13 @@ import com.dysonos.dto.NodeRequest;
 import com.dysonos.dto.NodeResponse;
 import com.dysonos.dto.NodeUsageRequest;
 import com.dysonos.exception.NodeNotFoundException;
+import com.dysonos.exception.NodeInUseException;
 import com.dysonos.exception.ZoneNotFoundException;
 import com.dysonos.model.Node;
 import com.dysonos.model.NodeStatus;
 import com.dysonos.model.Zone;
 import com.dysonos.repository.NodeRepository;
+import com.dysonos.repository.WorkloadAllocationRepository;
 import com.dysonos.repository.ZoneRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,6 +39,9 @@ class NodeServiceTest {
 
     @Mock
     private ZoneRepository zoneRepository;
+
+    @Mock
+    private WorkloadAllocationRepository workloadAllocationRepository;
 
     @Mock
     private NodeUsageThresholdProperties usageThresholds;
@@ -155,5 +160,17 @@ class NodeServiceTest {
         nodeService.delete(id);
 
         verify(nodeRepository).delete(node);
+    }
+
+    @Test
+    void deleteRejectsNodeWithWorkloadHistory() {
+        UUID id = UUID.randomUUID();
+        Node node = new Node("edge-01", 10.0, 20.0);
+        when(nodeRepository.findById(id)).thenReturn(Optional.of(node));
+        when(workloadAllocationRepository.existsByNodeId(id)).thenReturn(true);
+
+        assertThrows(NodeInUseException.class, () -> nodeService.delete(id));
+
+        verify(nodeRepository, never()).delete(node);
     }
 }

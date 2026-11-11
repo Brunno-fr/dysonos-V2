@@ -12,6 +12,7 @@ import com.dysonos.repository.NetworkRepository;
 import com.dysonos.repository.NodeRepository;
 import com.dysonos.repository.ZoneRepository;
 import com.dysonos.repository.ZoneMetricsProjection;
+import com.dysonos.repository.WorkloadRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,6 +41,9 @@ class ZoneServiceTest {
 
     @Mock
     private NetworkRepository networkRepository;
+
+    @Mock
+    private WorkloadRepository workloadRepository;
 
     @InjectMocks
     private ZoneService zoneService;
@@ -148,6 +152,19 @@ class ZoneServiceTest {
         Zone zone = new Zone("south-dc");
         when(zoneRepository.findById(id)).thenReturn(Optional.of(zone));
         when(nodeRepository.existsByZoneId(id)).thenReturn(true);
+
+        assertThrows(ZoneInUseException.class, () -> zoneService.delete(id));
+
+        verify(zoneRepository, never()).delete(any(Zone.class));
+    }
+
+    @Test
+    void deleteRejectsZoneWithWorkloadHistory() {
+        UUID id = UUID.randomUUID();
+        Zone zone = new Zone("south-dc");
+        when(zoneRepository.findById(id)).thenReturn(Optional.of(zone));
+        when(nodeRepository.existsByZoneId(id)).thenReturn(false);
+        when(workloadRepository.existsByZoneId(id)).thenReturn(true);
 
         assertThrows(ZoneInUseException.class, () -> zoneService.delete(id));
 
