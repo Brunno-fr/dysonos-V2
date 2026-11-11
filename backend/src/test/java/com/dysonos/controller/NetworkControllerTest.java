@@ -1,6 +1,7 @@
 package com.dysonos.controller;
 
 import com.dysonos.dto.NetworkRequest;
+import com.dysonos.dto.NetworkMetricsResponse;
 import com.dysonos.dto.NetworkResponse;
 import com.dysonos.exception.GlobalExceptionHandler;
 import com.dysonos.exception.NetworkInUseException;
@@ -62,6 +63,22 @@ class NetworkControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(NETWORK_ID.toString()))
                 .andExpect(jsonPath("$.zoneIds[0]").value(ZONE_ID.toString()));
+    }
+
+    @Test
+    void findMetricsReturnsNetworkUsageSummary() throws Exception {
+        NetworkMetricsResponse metrics = new NetworkMetricsResponse(NETWORK_ID, "production",
+                2, 3, 1, 72.5, 61.0);
+        when(networkService.findMetrics(NETWORK_ID)).thenReturn(metrics);
+
+        mockMvc.perform(get("/api/networks/{id}/metrics", NETWORK_ID))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.networkId").value(NETWORK_ID.toString()))
+                .andExpect(jsonPath("$.zoneCount").value(2))
+                .andExpect(jsonPath("$.nodeCount").value(3))
+                .andExpect(jsonPath("$.overloadedNodeCount").value(1))
+                .andExpect(jsonPath("$.averageCpuUsage").value(72.5))
+                .andExpect(jsonPath("$.averageMemoryUsage").value(61.0));
     }
 
     @Test

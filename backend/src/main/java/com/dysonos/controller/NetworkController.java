@@ -1,6 +1,7 @@
 package com.dysonos.controller;
 
 import com.dysonos.dto.NetworkRequest;
+import com.dysonos.dto.NetworkMetricsResponse;
 import com.dysonos.dto.NetworkResponse;
 import com.dysonos.service.NetworkService;
 import jakarta.validation.Valid;
@@ -35,6 +36,11 @@ public class NetworkController {
     @GetMapping("/{id}")
     public NetworkResponse findById(@PathVariable UUID id) {
         return networkService.findById(id);
+    }
+
+    @GetMapping("/{id}/metrics")
+    public NetworkMetricsResponse findMetrics(@PathVariable UUID id) {
+        return networkService.findMetrics(id);
     }
 
     @PostMapping

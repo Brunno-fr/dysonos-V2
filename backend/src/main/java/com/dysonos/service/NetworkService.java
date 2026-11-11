@@ -1,10 +1,12 @@
 package com.dysonos.service;
 
 import com.dysonos.dto.NetworkRequest;
+import com.dysonos.dto.NetworkMetricsResponse;
 import com.dysonos.dto.NetworkResponse;
 import com.dysonos.exception.NetworkInUseException;
 import com.dysonos.exception.NetworkNotFoundException;
 import com.dysonos.model.Network;
+import com.dysonos.model.NodeStatus;
 import com.dysonos.repository.NetworkRepository;
 import com.dysonos.repository.ZoneRepository;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,13 @@ public class NetworkService {
 
     public NetworkResponse findById(UUID id) {
         return NetworkResponse.from(getNetwork(id));
+    }
+
+    public NetworkMetricsResponse findMetrics(UUID id) {
+        getNetwork(id);
+        return networkRepository.findMetricsById(id, NodeStatus.OVERLOADED)
+                .map(NetworkMetricsResponse::from)
+                .orElseThrow(() -> new NetworkNotFoundException(id));
     }
 
     @Transactional
