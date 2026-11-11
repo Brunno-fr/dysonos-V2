@@ -2,6 +2,7 @@ package com.dysonos.service;
 
 import com.dysonos.dto.NodeRequest;
 import com.dysonos.dto.NodeResponse;
+import com.dysonos.dto.NodeUsageRequest;
 import com.dysonos.exception.NodeNotFoundException;
 import com.dysonos.exception.ZoneNotFoundException;
 import com.dysonos.model.Node;
@@ -57,6 +58,32 @@ class NodeServiceTest {
         when(nodeRepository.findById(id)).thenReturn(Optional.empty());
 
         assertThrows(NodeNotFoundException.class, () -> nodeService.findById(id));
+    }
+
+    @Test
+    void updateUsageReplacesCurrentCpuAndMemoryUsage() {
+        UUID id = UUID.randomUUID();
+        Node node = new Node("edge-01", 25.0, 40.0);
+        when(nodeRepository.findById(id)).thenReturn(Optional.of(node));
+        when(nodeRepository.save(node)).thenReturn(node);
+
+        NodeResponse response = nodeService.updateUsage(id, new NodeUsageRequest(81.0, 65.0));
+
+        assertEquals(81.0, response.cpuUsage());
+        assertEquals(65.0, response.memoryUsage());
+        assertEquals(NodeStatus.ONLINE, response.status());
+        verify(nodeRepository).save(node);
+    }
+
+    @Test
+    void updateUsageThrowsWhenNodeDoesNotExist() {
+        UUID id = UUID.randomUUID();
+        when(nodeRepository.findById(id)).thenReturn(Optional.empty());
+
+        assertThrows(NodeNotFoundException.class,
+                () -> nodeService.updateUsage(id, new NodeUsageRequest(81.0, 65.0)));
+
+        verify(nodeRepository, never()).save(any(Node.class));
     }
 
     @Test

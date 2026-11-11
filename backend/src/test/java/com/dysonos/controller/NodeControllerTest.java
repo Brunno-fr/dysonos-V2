@@ -2,6 +2,7 @@ package com.dysonos.controller;
 
 import com.dysonos.dto.NodeRequest;
 import com.dysonos.dto.NodeResponse;
+import com.dysonos.dto.NodeUsageRequest;
 import com.dysonos.exception.GlobalExceptionHandler;
 import com.dysonos.exception.NodeNotFoundException;
 import com.dysonos.model.NodeStatus;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -80,6 +82,37 @@ class NodeControllerTest {
         mockMvc.perform(get("/api/nodes/{id}", NODE_ID))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.title").value("Recurso não encontrado"));
+    }
+
+    @Test
+    void updateUsageReturnsUpdatedNode() throws Exception {
+        NodeResponse updated = new NodeResponse(NODE_ID, "edge-01", 81.0, 65.0,
+                NodeStatus.ONLINE, null, NODE.createdAt());
+        when(nodeService.updateUsage(NODE_ID, new NodeUsageRequest(81.0, 65.0))).thenReturn(updated);
+
+        mockMvc.perform(put("/api/nodes/{id}/usage", NODE_ID)
+                        .contentType("application/json")
+                        .content("""
+                                {"cpuUsage":81.0,"memoryUsage":65.0}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cpuUsage").value(81.0))
+                .andExpect(jsonPath("$.memoryUsage").value(65.0));
+
+        verify(nodeService).updateUsage(NODE_ID, new NodeUsageRequest(81.0, 65.0));
+    }
+
+    @Test
+    void updateUsageRejectsUsageAboveAllowedRange() throws Exception {
+        mockMvc.perform(put("/api/nodes/{id}/usage", NODE_ID)
+                        .contentType("application/json")
+                        .content("""
+                                {"cpuUsage":101,"memoryUsage":65}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.cpuUsage").exists());
+
+        verifyNoInteractions(nodeService);
     }
 
     @Test

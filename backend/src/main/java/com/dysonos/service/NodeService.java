@@ -2,6 +2,7 @@ package com.dysonos.service;
 
 import com.dysonos.dto.NodeRequest;
 import com.dysonos.dto.NodeResponse;
+import com.dysonos.dto.NodeUsageRequest;
 import com.dysonos.exception.NodeNotFoundException;
 import com.dysonos.exception.ZoneNotFoundException;
 import com.dysonos.model.Node;
@@ -32,6 +33,13 @@ public class NodeService {
 
     public NodeResponse findById(UUID id) {
         return NodeResponse.from(getNode(id));
+    }
+
+    @Transactional
+    public NodeResponse updateUsage(UUID id, NodeUsageRequest request) {
+        Node node = getNode(id);
+        node.updateUsage(request.cpuUsage(), request.memoryUsage());
+        return NodeResponse.from(nodeRepository.save(node));
     }
 
     @Transactional

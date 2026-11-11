@@ -64,6 +64,7 @@ As configurações do banco são definidas pelas variáveis `DB_URL`, `DB_USERNA
 | GET | `/api/nodes` | Lista Nodes |
 | GET | `/api/nodes/{id}` | Busca Node por UUID |
 | POST | `/api/nodes` | Cria Node |
+| PUT | `/api/nodes/{id}/usage` | Atualiza a leitura atual de CPU e memória de um Node |
 | DELETE | `/api/nodes/{id}` | Remove Node |
 | GET | `/api/networks` | Lista Networks com IDs das Zones vinculadas |
 | GET | `/api/networks/{id}` | Busca Network por UUID |
@@ -86,6 +87,8 @@ Exemplo de criação:
 ```
 
 `zoneId` é opcional. Quando informado, precisa identificar uma Zone existente. Cada Node pertence a zero ou uma Zone, e cada Zone pode conter vários Nodes. CPU e memória aceitam valores de 0 a 100, inclusive. Novos Nodes começam com status `ONLINE`. Uma Zone com Nodes vinculados não pode ser removida; a API retorna HTTP 409. Erros de validação e recursos inexistentes são retornados como respostas HTTP com detalhes em formato Problem Details.
+
+O endpoint `PUT /api/nodes/{id}/usage` recebe uma nova leitura de CPU e memória (ambas de 0 a 100), substitui os valores atuais e retorna o Node atualizado. Esta etapa registra leituras enviadas pelo cliente; não coleta métricas do sistema operacional nem altera automaticamente o status do Node.
 
 Uma Network pode conter várias Zones, e cada Zone pode pertencer a zero ou uma Network. `networkId` é opcional ao criar uma Zone; quando informado, precisa identificar uma Network existente. Networks com Zones vinculadas não podem ser removidas (HTTP 409).
 

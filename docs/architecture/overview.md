@@ -15,4 +15,6 @@ Uma Network pode conter várias Zones, e uma Zone pode conter vários Nodes. Os 
 
 O status de Node começa como `ONLINE` ao construir a entidade. `createdAt` recebe o instante UTC no ciclo de persistência. A validação da API limita os usos de CPU e memória ao intervalo inclusivo de 0 a 100.
 
+O cliente pode enviar novas leituras de CPU e memória por `PUT /api/nodes/{id}/usage`. O serviço substitui os valores atuais; a leitura é simulada e fornecida pelo cliente, não coletada do sistema operacional. A identificação de sobrecarga e a mudança automática de status ainda não fazem parte desta etapa.
+
 O endpoint `/api/health` informa apenas que a aplicação respondeu. Ele não verifica a conectividade do banco de dados.

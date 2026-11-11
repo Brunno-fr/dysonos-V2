@@ -61,6 +61,11 @@ public class Node {
         this.zone = zone;
     }
 
+    public void updateUsage(double cpuUsage, double memoryUsage) {
+        this.cpuUsage = cpuUsage;
+        this.memoryUsage = memoryUsage;
+    }
+
     @PrePersist
     void setCreatedAtIfMissing() {
         if (createdAt == null) {
