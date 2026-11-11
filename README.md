@@ -88,7 +88,7 @@ Exemplo de criação:
 
 `zoneId` é opcional. Quando informado, precisa identificar uma Zone existente. Cada Node pertence a zero ou uma Zone, e cada Zone pode conter vários Nodes. CPU e memória aceitam valores de 0 a 100, inclusive. Novos Nodes começam com status `ONLINE`. Uma Zone com Nodes vinculados não pode ser removida; a API retorna HTTP 409. Erros de validação e recursos inexistentes são retornados como respostas HTTP com detalhes em formato Problem Details.
 
-O endpoint `PUT /api/nodes/{id}/usage` recebe uma nova leitura de CPU e memória (ambas de 0 a 100), substitui os valores atuais e retorna o Node atualizado. Esta etapa registra leituras enviadas pelo cliente; não coleta métricas do sistema operacional nem altera automaticamente o status do Node.
+O endpoint `PUT /api/nodes/{id}/usage` recebe uma nova leitura de CPU e memória (ambas de 0 a 100), substitui os valores atuais e retorna o Node atualizado. Se CPU ou memória atingir seu limite, o status passa a `OVERLOADED`; se ambas ficarem abaixo dos limites, volta a `ONLINE`. Os limites padrão são 80% e podem ser alterados com `NODE_CPU_OVERLOAD_THRESHOLD` e `NODE_MEMORY_OVERLOAD_THRESHOLD`. Esta etapa registra leituras enviadas pelo cliente; não coleta métricas do sistema operacional. O Flyway aplica a migração versionada que atualiza a restrição de status no PostgreSQL sem remover Nodes existentes.
 
 Uma Network pode conter várias Zones, e cada Zone pode pertencer a zero ou uma Network. `networkId` é opcional ao criar uma Zone; quando informado, precisa identificar uma Network existente. Networks com Zones vinculadas não podem ser removidas (HTTP 409).
 

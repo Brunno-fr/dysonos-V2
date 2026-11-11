@@ -15,6 +15,8 @@ Uma Network pode conter várias Zones, e uma Zone pode conter vários Nodes. Os 
 
 O status de Node começa como `ONLINE` ao construir a entidade. `createdAt` recebe o instante UTC no ciclo de persistência. A validação da API limita os usos de CPU e memória ao intervalo inclusivo de 0 a 100.
 
-O cliente pode enviar novas leituras de CPU e memória por `PUT /api/nodes/{id}/usage`. O serviço substitui os valores atuais; a leitura é simulada e fornecida pelo cliente, não coletada do sistema operacional. A identificação de sobrecarga e a mudança automática de status ainda não fazem parte desta etapa.
+O cliente pode enviar novas leituras de CPU e memória por `PUT /api/nodes/{id}/usage`. O serviço substitui os valores atuais e marca o Node como `OVERLOADED` quando CPU ou memória atinge o limite configurado (80% por padrão); quando ambos ficam abaixo, o status retorna a `ONLINE`. Os limites são configuráveis por `NODE_CPU_OVERLOAD_THRESHOLD` e `NODE_MEMORY_OVERLOAD_THRESHOLD`. As leituras são simuladas e fornecidas pelo cliente, não coletadas do sistema operacional.
+
+Uma migração Flyway atualiza a restrição de status no PostgreSQL para permitir `ONLINE` e `OVERLOADED`. Em bancos já existentes, o Flyway cria a linha de base na versão 0 e aplica a migração V1; nenhum Node é removido.
 
 O endpoint `/api/health` informa apenas que a aplicação respondeu. Ele não verifica a conectividade do banco de dados.

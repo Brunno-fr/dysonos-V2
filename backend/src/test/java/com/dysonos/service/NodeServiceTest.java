@@ -1,5 +1,6 @@
 package com.dysonos.service;
 
+import com.dysonos.configuration.NodeUsageThresholdProperties;
 import com.dysonos.dto.NodeRequest;
 import com.dysonos.dto.NodeResponse;
 import com.dysonos.dto.NodeUsageRequest;
@@ -37,6 +38,9 @@ class NodeServiceTest {
     @Mock
     private ZoneRepository zoneRepository;
 
+    @Mock
+    private NodeUsageThresholdProperties usageThresholds;
+
     @InjectMocks
     private NodeService nodeService;
 
@@ -61,16 +65,47 @@ class NodeServiceTest {
     }
 
     @Test
-    void updateUsageReplacesCurrentCpuAndMemoryUsage() {
+    void updateUsageMarksNodeOverloadedAtCpuThreshold() {
         UUID id = UUID.randomUUID();
         Node node = new Node("edge-01", 25.0, 40.0);
         when(nodeRepository.findById(id)).thenReturn(Optional.of(node));
         when(nodeRepository.save(node)).thenReturn(node);
+        when(usageThresholds.getCpuOverloadThreshold()).thenReturn(80.0);
 
-        NodeResponse response = nodeService.updateUsage(id, new NodeUsageRequest(81.0, 65.0));
+        NodeResponse response = nodeService.updateUsage(id, new NodeUsageRequest(80.0, 65.0));
 
-        assertEquals(81.0, response.cpuUsage());
+        assertEquals(80.0, response.cpuUsage());
         assertEquals(65.0, response.memoryUsage());
+        assertEquals(NodeStatus.OVERLOADED, response.status());
+        verify(nodeRepository).save(node);
+    }
+
+    @Test
+    void updateUsageMarksNodeOverloadedWhenMemoryExceedsThreshold() {
+        UUID id = UUID.randomUUID();
+        Node node = new Node("edge-01", 25.0, 40.0);
+        when(nodeRepository.findById(id)).thenReturn(Optional.of(node));
+        when(nodeRepository.save(node)).thenReturn(node);
+        when(usageThresholds.getCpuOverloadThreshold()).thenReturn(80.0);
+        when(usageThresholds.getMemoryOverloadThreshold()).thenReturn(80.0);
+
+        NodeResponse response = nodeService.updateUsage(id, new NodeUsageRequest(65.0, 81.0));
+
+        assertEquals(NodeStatus.OVERLOADED, response.status());
+        verify(nodeRepository).save(node);
+    }
+
+    @Test
+    void updateUsageReturnsNodeOnlineWhenBothMetricsFallBelowThreshold() {
+        UUID id = UUID.randomUUID();
+        Node node = new Node("edge-01", 80.0, 65.0);
+        when(nodeRepository.findById(id)).thenReturn(Optional.of(node));
+        when(nodeRepository.save(node)).thenReturn(node);
+        when(usageThresholds.getCpuOverloadThreshold()).thenReturn(80.0);
+        when(usageThresholds.getMemoryOverloadThreshold()).thenReturn(80.0);
+
+        NodeResponse response = nodeService.updateUsage(id, new NodeUsageRequest(79.9, 65.0));
+
         assertEquals(NodeStatus.ONLINE, response.status());
         verify(nodeRepository).save(node);
     }

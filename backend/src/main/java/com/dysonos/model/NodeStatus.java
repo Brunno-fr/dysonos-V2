@@ -1,5 +1,6 @@
 package com.dysonos.model;
 
 public enum NodeStatus {
-    ONLINE
+    ONLINE,
+    OVERLOADED
 }

@@ -3,9 +3,11 @@ package com.dysonos.service;
 import com.dysonos.dto.NodeRequest;
 import com.dysonos.dto.NodeResponse;
 import com.dysonos.dto.NodeUsageRequest;
+import com.dysonos.configuration.NodeUsageThresholdProperties;
 import com.dysonos.exception.NodeNotFoundException;
 import com.dysonos.exception.ZoneNotFoundException;
 import com.dysonos.model.Node;
+import com.dysonos.model.NodeStatus;
 import com.dysonos.model.Zone;
 import com.dysonos.repository.NodeRepository;
 import com.dysonos.repository.ZoneRepository;
@@ -21,10 +23,13 @@ public class NodeService {
 
     private final NodeRepository nodeRepository;
     private final ZoneRepository zoneRepository;
+    private final NodeUsageThresholdProperties usageThresholds;
 
-    public NodeService(NodeRepository nodeRepository, ZoneRepository zoneRepository) {
+    public NodeService(NodeRepository nodeRepository, ZoneRepository zoneRepository,
+                       NodeUsageThresholdProperties usageThresholds) {
         this.nodeRepository = nodeRepository;
         this.zoneRepository = zoneRepository;
+        this.usageThresholds = usageThresholds;
     }
 
     public List<NodeResponse> findAll() {
@@ -38,7 +43,10 @@ public class NodeService {
     @Transactional
     public NodeResponse updateUsage(UUID id, NodeUsageRequest request) {
         Node node = getNode(id);
-        node.updateUsage(request.cpuUsage(), request.memoryUsage());
+        boolean overloaded = request.cpuUsage() >= usageThresholds.getCpuOverloadThreshold()
+                || request.memoryUsage() >= usageThresholds.getMemoryOverloadThreshold();
+        NodeStatus status = overloaded ? NodeStatus.OVERLOADED : NodeStatus.ONLINE;
+        node.updateUsage(request.cpuUsage(), request.memoryUsage(), status);
         return NodeResponse.from(nodeRepository.save(node));
     }
 

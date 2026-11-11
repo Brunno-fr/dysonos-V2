@@ -61,9 +61,10 @@ public class Node {
         this.zone = zone;
     }
 
-    public void updateUsage(double cpuUsage, double memoryUsage) {
+    public void updateUsage(double cpuUsage, double memoryUsage, NodeStatus status) {
         this.cpuUsage = cpuUsage;
         this.memoryUsage = memoryUsage;
+        this.status = status;
     }
 
     @PrePersist
