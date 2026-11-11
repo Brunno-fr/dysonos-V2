@@ -13,6 +13,7 @@ DYSONOS V2 é um simulador inteligente de infraestrutura de redes distribuídas.
 - PostgreSQL
 - Maven
 - JUnit 5 e Mockito
+- Testcontainers para testes de integração com PostgreSQL
 
 ### Frontend planejado
 
@@ -29,7 +30,7 @@ Backend inicial de Networks, Zones e Nodes implementado e validado. O projeto se
 
 - JDK 21
 - Maven 3.6.3 ou superior
-- Docker com Docker Compose (ou PostgreSQL instalado localmente)
+- Docker Desktop com Docker Compose (também usado pelos testes de integração) ou PostgreSQL instalado localmente
 
 ## Executar
 
@@ -53,6 +54,8 @@ A API fica disponível em `http://localhost:8080`. Para executar os testes:
 cd backend
 mvn test
 ```
+
+Os testes de integração criam um PostgreSQL temporário pelo Testcontainers. Deixe o Docker Desktop iniciado para executá-los; sem acesso ao Docker, eles são ignorados e os demais testes continuam rodando.
 
 As configurações do banco são definidas pelas variáveis `DB_URL`, `DB_USERNAME` e `DB_PASSWORD`. A senha é fornecida pelo ambiente e não é armazenada no repositório.
 

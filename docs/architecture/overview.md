@@ -17,7 +17,7 @@ O status de Node começa como `ONLINE` ao construir a entidade. `createdAt` rece
 
 O cliente pode enviar novas leituras de CPU e memória por `PUT /api/nodes/{id}/usage`. O serviço substitui os valores atuais e marca o Node como `OVERLOADED` quando CPU ou memória atinge o limite configurado (80% por padrão); quando ambos ficam abaixo, o status retorna a `ONLINE`. Os limites são configuráveis por `NODE_CPU_OVERLOAD_THRESHOLD` e `NODE_MEMORY_OVERLOAD_THRESHOLD`. As leituras são simuladas e fornecidas pelo cliente, não coletadas do sistema operacional.
 
-Uma migração Flyway atualiza a restrição de status no PostgreSQL para permitir `ONLINE` e `OVERLOADED`. Em bancos já existentes, o Flyway cria a linha de base na versão 0 e aplica a migração V1; nenhum Node é removido.
+As migrações Flyway dão suporte tanto a bancos vazios quanto aos bancos locais já existentes. Em uma instalação nova, V0.1 cria as tabelas centrais, V1 ajusta a restrição de status e V2 cria as tabelas de demandas. Em bancos existentes, a linha de base na versão 0 preserva Networks, Zones e Nodes; V0.1 é ignorada quando o histórico já avançou, e as migrações pendentes são aplicadas sem remover dados.
 
 O endpoint `GET /api/networks/{id}/metrics` agrega a quantidade de Zones e Nodes, Nodes sobrecarregados e as médias aritméticas das porcentagens de CPU e memória dos Nodes vinculados. Em Networks sem Nodes, as médias são retornadas como zero. Os valores representam as leituras simuladas atualmente armazenadas.
 
